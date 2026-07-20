@@ -1,4 +1,4 @@
-// @ts-expect-error browser-resolved path to marked esm bundle
+// @ts-expect-error browser-resolved path to marked esm bundle (it breaks completely without this, not really sure why)
 import { marked } from "../../../../node_modules/marked/lib/marked.esm.js";
 import { Component } from "./component.js";
 import { VODALUS_ALICEBLUE } from "../theme.js";
