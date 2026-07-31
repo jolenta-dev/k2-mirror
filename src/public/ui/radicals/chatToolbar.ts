@@ -16,7 +16,12 @@ export class ChatToolbar extends Component<HTMLDivElement> {
             container.appendChild(newChatBtn.el);
         }
 
-        const availableChatsBtn: Button = new Button("available chats", "available-chats-btn", true, true);
+        const availableChatsBtn: Button = new Button(
+            "available chats",
+            "available-chats-btn",
+            true,
+            true
+        );
         const chatTagBtn: Button = new Button("chat tag", "chat-tag-btn", true, true);
         container.appendChild(availableChatsBtn.el);
         container.appendChild(chatTagBtn.el);

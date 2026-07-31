@@ -63,7 +63,8 @@ export class Table extends Component<HTMLTableElement> {
             td.style.width = "20%";
             tr.appendChild(td);
         }
-        tr.style.backgroundColor = (this.rows % 2) ? "rgba(255, 255, 255, 0.045)" : "rgba(0, 0, 0, 0.08)";
+        tr.style.backgroundColor =
+            this.rows % 2 ? "rgba(255, 255, 255, 0.045)" : "rgba(0, 0, 0, 0.08)";
         this.tbody.appendChild(tr);
         this.rows++;
     }

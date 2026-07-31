@@ -1,36 +1,46 @@
 {
-  "name": "katharine 2",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "build": "tsc",
-    "start": "node build/server.js",
-    "typecheck": "tsc --noEmit",
-    "dev": "tsc-watch --onSuccess \"node build/server.js\"",
-    "refresh": "npm run build && npm start"
-  },
-  "engines": {
-    "node": ">=20"
-  },
-  "dependencies": {
-    "bcrypt": "^5.1.1",
-    "better-sqlite3": "^11.8.1",
-    "cookie": "^1.0.2",
-    "cookie-parser": "^1.4.7",
-    "cookie-signature": "^1.2.2",
-    "express": "^4.21.2",
-    "marked": "^18.0.6",
-    "ws": "^8.18.1"
-  },
-  "devDependencies": {
-    "@types/bcrypt": "^5.0.2",
-    "@types/better-sqlite3": "^7.6.12",
-    "@types/cookie-parser": "^1.4.8",
-    "@types/express": "^5.0.0",
-    "@types/node": "^22.10.5",
-    "@types/ws": "^8.5.13",
-    "esbuild": "^0.25.0",
-    "tsc-watch": "^7.2.1",
-    "typescript": "^6.0.3"
-  }
+    "name": "katharine 2",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "tsc",
+        "start": "node build/server.js",
+        "typecheck": "tsc --noEmit",
+        "dev": "tsc-watch --onSuccess \"node build/server.js\"",
+        "refresh": "npm run build && npm start",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "lint": "prettier --check .",
+        "format": "prettier --write .",
+        "prepare": "husky",
+        "ci": "npm run lint && npm run typecheck && npm test"
+    },
+    "engines": {
+        "node": ">=26"
+    },
+    "dependencies": {
+        "bcrypt": "^5.1.1",
+        "better-sqlite3": "^11.8.1",
+        "cookie": "^1.0.2",
+        "cookie-parser": "^1.4.7",
+        "cookie-signature": "^1.2.2",
+        "express": "^4.21.2",
+        "marked": "^18.0.6",
+        "sqlite": "^5.1.1",
+        "ws": "^8.18.1"
+    },
+    "devDependencies": {
+        "@types/bcrypt": "^5.0.2",
+        "@types/better-sqlite3": "^7.6.12",
+        "@types/cookie-parser": "^1.4.8",
+        "@types/express": "^5.0.0",
+        "@types/node": "^26.1.2",
+        "@types/ws": "^8.5.13",
+        "esbuild": "^0.25.0",
+        "husky": "^9.1.7",
+        "prettier": "^3.9.6",
+        "tsc-watch": "^7.2.1",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.10"
+    }
 }

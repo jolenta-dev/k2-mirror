@@ -1,6 +1,11 @@
 import { Wiggly } from "../effects/wiggly.js";
 import { Component } from "./component.js";
-import { VODALUS_ALICEBLUE, VODALUS_BUTTON, VODALUS_BUTTON_HOVER, VODALUS_CURSOR_LINK } from "../theme.js";
+import {
+    VODALUS_ALICEBLUE,
+    VODALUS_BUTTON,
+    VODALUS_BUTTON_HOVER,
+    VODALUS_CURSOR_LINK,
+} from "../theme.js";
 
 export class Button extends Component<HTMLButtonElement> {
     constructor(content: string, id?: string, wiggles?: boolean, hasHover: boolean = true) {

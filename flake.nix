@@ -23,14 +23,16 @@
         {
           default = pkgs.mkShell {
             packages = with pkgs; [
-              nodejs
+              nodejs_26
               typescript
             ];
             shellHook = ''
-              if command -v fish >/dev/null 2>&1; then
-                exec fish
-              elif command -v zsh >/dev/null 2>&1; then
-                exec zsh
+              if [[ $- == *i* ]]; then
+                if command -v fish >/dev/null 2>&1; then
+                  exec fish
+                elif command -v zsh >/dev/null 2>&1; then
+                  exec zsh
+                fi
               fi
             '';
           };
