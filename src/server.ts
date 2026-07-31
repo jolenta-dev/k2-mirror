@@ -1,20 +1,7 @@
-import express from "express";
 import path from "path";
-import { fileURLToPath } from "url";
+import { Katharine } from "./Katharine.js";
+import { initPaths } from "./paths.js";
 
-const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const rootDir = path.join(__dirname, "..");
-
-app.get("/", (_req, res) => {
-    res.sendFile(path.join(rootDir, "./index.html"));
-});
-
-app.use("/server", (_req, res) => {
-    res.sendStatus(403);
-});
-
-app.use(express.static(rootDir));
-
-app.listen(4000, () => console.log("Server running on :4000"));
+const { databasesDir } = initPaths();
+const katharine = new Katharine(path.join(databasesDir, "katharine.db"));
+katharine.initServer();

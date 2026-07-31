@@ -1,18 +1,23 @@
-import path from "path";
 import { DatabaseSync } from "node:sqlite";
-import { DATABASES_DIR } from "./paths.js";
 
-export const k2db = new DatabaseSync(path.join(DATABASES_DIR, "katharine.db"));
+// instatiate the 7 primary SQLite tables of the Katharine API -------
+export function initTables(pathToDB: string): DatabaseSync {
+    const db = new DatabaseSync(pathToDB);
+    db.exec("PRAGMA foreign_keys = ON");
 
-k2db.exec("PRAGMA foreign_keys = ON");
-
-// 7 main tables define K2's db structure by default -----------
-k2db.exec(`
+    db.exec(`
           CREATE TABLE IF NOT EXISTS users (
               user_id INTEGER PRIMARY KEY,
               name TEXT NOT NULL UNIQUE,
               password TEXT NOT NULL,
               registration_date TEXT NOT NULL DEFAULT (datetime('now'))
+          );
+
+          CREATE TABLE IF NOT EXISTS user_decoration (
+            user_id INTEGER NOT NULL,
+            decoration TEXT DEFAULT NULL,
+            color TEXT DEFAULT "#fff",
+            FOREIGN KEY (user_id) REFERENCES users(user_id)
           );
 
           CREATE TABLE IF NOT EXISTS conversations (
@@ -75,3 +80,14 @@ k2db.exec(`
           CREATE INDEX IF NOT EXISTS idx_messages_convo
               ON messages(convo_id, message_id);
           `);
+
+    // migrate user_decoration if an older schema is present
+    const decorationCols = db.prepare("PRAGMA table_info(user_decoration)").all() as Array<{
+        name: string;
+    }>;
+    if (!decorationCols.some((col) => col.name === "color")) {
+        db.exec(`ALTER TABLE user_decoration ADD COLUMN color TEXT DEFAULT "#fff"`);
+    }
+
+    return db;
+}

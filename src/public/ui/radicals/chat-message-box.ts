@@ -28,7 +28,7 @@ export class ChatMessageBox extends Component<HTMLDivElement> {
         this.messages.style.boxSizing = "border-box";
         this.messages.style.borderRadius = "0 0 10px 10px";
         this.messages.style.padding = "10px";
-        this.messages.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+        this.messages.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
         this.messages.style.color = K2_TEXT;
         this.messages.style.overflow = "auto";
 

@@ -1,6 +1,16 @@
 import path from "path";
 import { fileURLToPath } from "url";
 
-const rootDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+export type KatharinePaths = {
+    rootDir: string;
+    databasesDir: string;
+    logsDir: string;
+};
 
-export const DATABASES_DIR = path.join(rootDir, "src", "server", "dbs");
+// set the K2 paths ---------------------------------------------------
+export function initPaths(): KatharinePaths {
+    const rootDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+    const databasesDir = path.join(rootDir, "src", "server", "dbs");
+    const logsDir = path.join(rootDir, "logs");
+    return { rootDir, databasesDir, logsDir };
+}

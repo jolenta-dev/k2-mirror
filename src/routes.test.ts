@@ -1,0 +1,192 @@
+import { describe, expect, it } from "vitest";
+import express from "express";
+import cookieParser from "cookie-parser";
+import type { Server } from "node:http";
+import { initTables } from "./dbs.js";
+import { addRoutes } from "./routes.js";
+import type { Logger } from "./logger.js";
+
+const noopLogger: Logger = {
+    info: () => {},
+    error: () => {},
+};
+
+async function withTestServer(
+    setup: (db: ReturnType<typeof initTables>) => void,
+    run: (baseUrl: string) => Promise<void>
+): Promise<void> {
+    const app = express();
+    app.use(express.json());
+    app.use(cookieParser("k2-test-secret"));
+    const db = initTables(":memory:");
+    setup(db);
+    addRoutes(app, db, noopLogger);
+
+    const server = await new Promise<Server>((resolve) => {
+        const s = app.listen(0, "127.0.0.1", () => resolve(s));
+    });
+    const address = server.address();
+    if (!address || typeof address === "string") {
+        throw new Error("expected a TCP listen address");
+    }
+
+    try {
+        await run(`http://127.0.0.1:${address.port}`);
+    } finally {
+        await new Promise<void>((resolve, reject) => {
+            server.close((err) => (err ? reject(err) : resolve()));
+        });
+    }
+}
+
+describe("POST /api/register", () => {
+    it("returns success for a valid registration", async () => {
+        await withTestServer(
+            () => {},
+            async (baseUrl) => {
+                const res = await fetch(`${baseUrl}/api/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "alice", password: "secret" }),
+                });
+
+                expect(res.status).toBe(200);
+                expect(await res.json()).toEqual({ success: true });
+            }
+        );
+    });
+});
+
+describe("POST /api/login", () => {
+    it("issues a guest cookie for an unregistered name", async () => {
+        await withTestServer(
+            () => {},
+            async (baseUrl) => {
+                const res = await fetch(`${baseUrl}/api/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "guest" }),
+                });
+
+                expect(res.status).toBe(200);
+                expect(await res.json()).toEqual({ success: true });
+                expect(res.headers.getSetCookie().join(";")).toMatch(/chat_sid=/);
+            }
+        );
+    });
+
+    it("logs in a registered user with the correct password", async () => {
+        await withTestServer(
+            () => {},
+            async (baseUrl) => {
+                await fetch(`${baseUrl}/api/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "alice", password: "secret" }),
+                });
+
+                const res = await fetch(`${baseUrl}/api/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "alice", password: "secret" }),
+                });
+
+                expect(res.status).toBe(200);
+                expect(await res.json()).toEqual({ success: true });
+                expect(res.headers.getSetCookie().join(";")).toMatch(/chat_sid=/);
+            }
+        );
+    });
+
+    it("rejects a registered user with the wrong password", async () => {
+        await withTestServer(
+            () => {},
+            async (baseUrl) => {
+                await fetch(`${baseUrl}/api/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "alice", password: "secret" }),
+                });
+
+                const res = await fetch(`${baseUrl}/api/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "alice", password: "nope" }),
+                });
+
+                expect(res.status).toBe(401);
+                expect(await res.json()).toEqual({ error: "wrong password for nickname" });
+            }
+        );
+    });
+
+    it("rejects a missing name", async () => {
+        await withTestServer(
+            () => {},
+            async (baseUrl) => {
+                const res = await fetch(`${baseUrl}/api/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password: "secret" }),
+                });
+
+                expect(res.status).toBe(400);
+                expect(await res.json()).toEqual({
+                    error: "A name is required to join the chat.",
+                });
+            }
+        );
+    });
+});
+
+describe("GET /api/names", () => {
+    it("returns registered users with decoration and chat tag info", async () => {
+        await withTestServer(
+            (db) => {
+                db.prepare(
+                    `INSERT INTO users (user_id, name, password, registration_date)
+                     VALUES (1, 'alice', 'hash', datetime('now'))`
+                ).run();
+                db.prepare(
+                    `INSERT INTO users (user_id, name, password, registration_date)
+                     VALUES (2, 'bob', 'hash', datetime('now'))`
+                ).run();
+                db.prepare(
+                    `INSERT INTO user_decoration (user_id, decoration, color)
+                     VALUES (1, '★', '#ff00aa')`
+                ).run();
+                db.prepare(
+                    `INSERT INTO chat_tags (tag_id, tag, style)
+                     VALUES (1, '(VIP)', 'font-weight: bold')`
+                ).run();
+                db.prepare(
+                    `INSERT INTO user_chat_tags (user_id, active_tag)
+                     VALUES (1, 1)`
+                ).run();
+            },
+            async (baseUrl) => {
+                const res = await fetch(`${baseUrl}/api/names`);
+
+                expect(res.status).toBe(200);
+                expect(await res.json()).toEqual([
+                    {
+                        user_id: 1,
+                        name: "alice",
+                        decoration: "★",
+                        color: "#ff00aa",
+                        tag: "(VIP)",
+                        tag_style: "font-weight: bold",
+                    },
+                    {
+                        user_id: 2,
+                        name: "bob",
+                        decoration: null,
+                        color: null,
+                        tag: null,
+                        tag_style: null,
+                    },
+                ]);
+            }
+        );
+    });
+});
