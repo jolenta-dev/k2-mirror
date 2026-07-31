@@ -1,5 +1,5 @@
 import { Component } from "./component.js";
-import { VODALUS_SERIF } from "../theme.js";
+import { K2_SERIF } from "../theme.js";
 
 export class PageTitle extends Component<HTMLDivElement> {
     constructor(content: string) {
@@ -9,7 +9,7 @@ export class PageTitle extends Component<HTMLDivElement> {
         title.innerHTML = "<h2><b>" + content + "</b></h2>";
         titleWrapper.style.display = "flex";
         titleWrapper.style.justifyContent = "center";
-        titleWrapper.style.fontFamily = VODALUS_SERIF;
+        titleWrapper.style.fontFamily = K2_SERIF;
 
         super(titleWrapper);
         this.mount();

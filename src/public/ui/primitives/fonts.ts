@@ -1,10 +1,10 @@
 export function loadFonts(): void {
-    if (document.getElementById("vodalus-fonts")) {
+    if (document.getElementById("k2-fonts")) {
         return;
     }
 
     const style: HTMLStyleElement = document.createElement("style");
-    style.id = "vodalus-fonts";
+    style.id = "k2-fonts";
     style.textContent = `
     @font-face {
       font-family: "Meylda";

@@ -1,5 +1,5 @@
 import { Component } from "./component.js";
-import { VODALUS_TABLE_TEXT, VODALUS_TABLE_BORDER } from "../theme.js";
+import { K2_TEXT, K2_BORDER } from "../theme.js";
 
 export class Table extends Component<HTMLTableElement> {
     rows: number;
@@ -26,9 +26,9 @@ export class Table extends Component<HTMLTableElement> {
                 th.textContent = headers[i] as string;
                 th.style.padding = "0.6em";
                 th.style.verticalAlign = "top";
-                th.style.border = `1px solid ${VODALUS_TABLE_BORDER}`;
+                th.style.border = `1px solid ${K2_BORDER}`;
                 th.style.background = "rgba(255, 255, 255, 0.07)";
-                th.style.color = VODALUS_TABLE_TEXT;
+                th.style.color = K2_TEXT;
                 th.style.fontWeight = "normal";
                 th.style.textAlign = "right";
                 th.style.width = "20%";
@@ -57,8 +57,8 @@ export class Table extends Component<HTMLTableElement> {
             td.textContent = content[i] as string;
             td.style.padding = "0.6em";
             td.style.verticalAlign = "top";
-            td.style.border = `1px solid ${VODALUS_TABLE_BORDER}`;
-            td.style.color = VODALUS_TABLE_TEXT;
+            td.style.border = `1px solid ${K2_BORDER}`;
+            td.style.color = K2_TEXT;
             td.style.textAlign = "right";
             td.style.width = "20%";
             tr.appendChild(td);

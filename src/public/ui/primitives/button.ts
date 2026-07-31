@@ -1,11 +1,6 @@
 import { Wiggly } from "../effects/wiggly.js";
 import { Component } from "./component.js";
-import {
-    VODALUS_ALICEBLUE,
-    VODALUS_BUTTON,
-    VODALUS_BUTTON_HOVER,
-    VODALUS_CURSOR_LINK,
-} from "../theme.js";
+import { K2_SECONDARY, K2_HIGHLIGHT, K2_HIGHLIGHT_HOVER } from "../theme.js";
 
 export class Button extends Component<HTMLButtonElement> {
     constructor(content: string, id?: string, wiggles?: boolean, hasHover: boolean = true) {
@@ -18,14 +13,14 @@ export class Button extends Component<HTMLButtonElement> {
 
         // styling
         el.style.textAlign = "center";
-        el.style.cursor = VODALUS_CURSOR_LINK;
+        el.style.cursor = "pointer";
         el.style.font = "inherit";
         el.style.boxSizing = "border-box";
         el.style.padding = "6px 14px";
-        el.style.border = `1px solid ${VODALUS_ALICEBLUE}`;
-        el.style.color = VODALUS_ALICEBLUE;
-        el.style.borderRadius = "5px"; // clever shennanigans will be needed for this soon...
-        el.style.backgroundColor = VODALUS_BUTTON;
+        el.style.border = `1px solid ${K2_SECONDARY}`;
+        el.style.color = K2_SECONDARY;
+        el.style.borderRadius = "5px";
+        el.style.backgroundColor = K2_HIGHLIGHT;
 
         super(el);
 
@@ -47,10 +42,10 @@ export class Button extends Component<HTMLButtonElement> {
 
     hover(el: HTMLButtonElement): void {
         if (el.style.backgroundColor === "rgb(112, 141, 133)") {
-            el.style.backgroundColor = VODALUS_BUTTON;
-            el.style.color = VODALUS_ALICEBLUE;
+            el.style.backgroundColor = K2_HIGHLIGHT;
+            el.style.color = K2_SECONDARY;
         } else {
-            el.style.backgroundColor = VODALUS_BUTTON_HOVER;
+            el.style.backgroundColor = K2_HIGHLIGHT_HOVER;
             el.style.color = "black";
         }
     }
