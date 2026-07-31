@@ -10,7 +10,6 @@ export class ChatToolbar extends Component<HTMLDivElement> {
         el.style.overflow = "hidden";
         el.style.boxSizing = "border-box";
         el.style.width = "100%";
-        el.style.marginTop = "1rem";
         el.style.color = K2_SECONDARY;
 
         super(el);

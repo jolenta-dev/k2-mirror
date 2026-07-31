@@ -23,25 +23,33 @@ export class Chat extends Component {
 
     drawChat(): void {
         this.el.style.display = "flex";
-
-        const chatInnerWrapper: HTMLDivElement = document.createElement("div");
-        chatInnerWrapper.style.width = "65vw";
-        chatInnerWrapper.style.boxSizing = "border-box";
+        this.el.style.flexDirection = "column";
+        this.el.style.alignItems = "flex-start";
+        this.el.style.marginTop = "1rem";
 
         this.chatBox = new ChatMessageBox(false);
         const messageInput = new MessageInput();
         const memberList = new MemberList();
-        memberList.el.style.position = "absolute";
-        memberList.el.style.top = "9.5vh"; // TODO: these are kinda random settings
-        memberList.el.style.left = "66vw";
 
+        this.chatBox.toolbar.el.style.width = "65vw";
         this.chatBox.el.style.width = "100%";
         messageInput.el.style.width = "100%";
 
+        const chatInnerWrapper: HTMLDivElement = document.createElement("div");
+        chatInnerWrapper.style.width = "65vw";
+        chatInnerWrapper.style.boxSizing = "border-box";
         chatInnerWrapper.appendChild(this.chatBox.el);
         chatInnerWrapper.appendChild(messageInput.el);
-        this.el.appendChild(chatInnerWrapper);
-        this.el.appendChild(memberList.el);
+
+        const bodyRow: HTMLDivElement = document.createElement("div");
+        bodyRow.style.display = "flex";
+        bodyRow.style.alignItems = "flex-start";
+        bodyRow.style.gap = "1vw";
+        bodyRow.appendChild(chatInnerWrapper);
+        bodyRow.appendChild(memberList.el);
+
+        this.el.appendChild(this.chatBox.toolbar.el);
+        this.el.appendChild(bodyRow);
         this.mount();
 
         this.addMessage("now", 0, "this is a test message");

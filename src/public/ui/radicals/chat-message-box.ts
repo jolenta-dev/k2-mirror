@@ -32,7 +32,6 @@ export class ChatMessageBox extends Component<HTMLDivElement> {
         this.messages.style.color = K2_TEXT;
         this.messages.style.overflow = "auto";
 
-        this.el.appendChild(this.toolbar.el);
         this.el.appendChild(this.tabs.el);
         this.el.appendChild(this.messages);
     }

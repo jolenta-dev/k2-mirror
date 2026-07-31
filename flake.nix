@@ -25,6 +25,7 @@
             packages = with pkgs; [
               nodejs_26
               typescript
+              sqlite
             ];
             shellHook = ''
               if [[ $- == *i* ]]; then

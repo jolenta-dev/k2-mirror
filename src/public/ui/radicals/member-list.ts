@@ -59,7 +59,7 @@ export class MemberList extends Component {
         const tag = entry.tag
             ? ` <span style="${escapeHtml(entry.tag_style ?? "")}">${escapeHtml(entry.tag)}</span>`
             : "";
-        return `${decoration}<span style="color: ${escapeHtml(color)}">${escapeHtml(entry.name)}</span>${tag}`;
+        return `${tag}${decoration}<span style="color: ${escapeHtml(color)}">${escapeHtml(entry.name)}</span>`;
     }
 
     public addMember(innerHTML: string): void {
