@@ -6,21 +6,30 @@ import { initTables } from "./dbs.js";
 import { addRoutes } from "./routes.js";
 import type { Logger } from "./logger.js";
 
-const noopLogger: Logger = {
-    info: () => {},
-    error: () => {},
-};
+type LogEntry = { level: "info" | "error"; message: string };
+
+function createCapturingLogger(): { logger: Logger; entries: LogEntry[] } {
+    const entries: LogEntry[] = [];
+    return {
+        entries,
+        logger: {
+            info: (message) => entries.push({ level: "info", message }),
+            error: (message) => entries.push({ level: "error", message }),
+        },
+    };
+}
 
 async function withTestServer(
     setup: (db: ReturnType<typeof initTables>) => void,
-    run: (baseUrl: string) => Promise<void>
+    run: (baseUrl: string, logs: LogEntry[]) => Promise<void>
 ): Promise<void> {
     const app = express();
     app.use(express.json());
     app.use(cookieParser("k2-test-secret"));
     const db = initTables(":memory:");
     setup(db);
-    addRoutes(app, db, noopLogger);
+    const { logger, entries } = createCapturingLogger();
+    addRoutes(app, db, logger);
 
     const server = await new Promise<Server>((resolve) => {
         const s = app.listen(0, "127.0.0.1", () => resolve(s));
@@ -31,7 +40,7 @@ async function withTestServer(
     }
 
     try {
-        await run(`http://127.0.0.1:${address.port}`);
+        await run(`http://127.0.0.1:${address.port}`, entries);
     } finally {
         await new Promise<void>((resolve, reject) => {
             server.close((err) => (err ? reject(err) : resolve()));
@@ -43,7 +52,7 @@ describe("POST /api/register", () => {
     it("returns success for a valid registration", async () => {
         await withTestServer(
             () => {},
-            async (baseUrl) => {
+            async (baseUrl, logs) => {
                 const res = await fetch(`${baseUrl}/api/register`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -52,6 +61,10 @@ describe("POST /api/register", () => {
 
                 expect(res.status).toBe(200);
                 expect(await res.json()).toEqual({ success: true });
+                expect(logs).toContainEqual({
+                    level: "info",
+                    message: "User registered successfully: alice (user_id=1)",
+                });
             }
         );
     });
@@ -61,7 +74,7 @@ describe("POST /api/login", () => {
     it("issues a guest cookie for an unregistered name", async () => {
         await withTestServer(
             () => {},
-            async (baseUrl) => {
+            async (baseUrl, logs) => {
                 const res = await fetch(`${baseUrl}/api/login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -71,6 +84,10 @@ describe("POST /api/login", () => {
                 expect(res.status).toBe(200);
                 expect(await res.json()).toEqual({ success: true });
                 expect(res.headers.getSetCookie().join(";")).toMatch(/chat_sid=/);
+                expect(logs).toContainEqual({
+                    level: "info",
+                    message: "Issued cookie to unregistered user guest",
+                });
             }
         );
     });
@@ -78,7 +95,7 @@ describe("POST /api/login", () => {
     it("logs in a registered user with the correct password", async () => {
         await withTestServer(
             () => {},
-            async (baseUrl) => {
+            async (baseUrl, logs) => {
                 await fetch(`${baseUrl}/api/register`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -94,6 +111,10 @@ describe("POST /api/login", () => {
                 expect(res.status).toBe(200);
                 expect(await res.json()).toEqual({ success: true });
                 expect(res.headers.getSetCookie().join(";")).toMatch(/chat_sid=/);
+                expect(logs).toContainEqual({
+                    level: "info",
+                    message: "Successful logon of user alice, issued cookie.",
+                });
             }
         );
     });
@@ -101,7 +122,7 @@ describe("POST /api/login", () => {
     it("rejects a registered user with the wrong password", async () => {
         await withTestServer(
             () => {},
-            async (baseUrl) => {
+            async (baseUrl, logs) => {
                 await fetch(`${baseUrl}/api/register`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -116,6 +137,10 @@ describe("POST /api/login", () => {
 
                 expect(res.status).toBe(401);
                 expect(await res.json()).toEqual({ error: "wrong password for nickname" });
+                expect(logs).toContainEqual({
+                    level: "error",
+                    message: "Failed login for user alice",
+                });
             }
         );
     });
@@ -123,7 +148,7 @@ describe("POST /api/login", () => {
     it("rejects a missing name", async () => {
         await withTestServer(
             () => {},
-            async (baseUrl) => {
+            async (baseUrl, logs) => {
                 const res = await fetch(`${baseUrl}/api/login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -133,6 +158,10 @@ describe("POST /api/login", () => {
                 expect(res.status).toBe(400);
                 expect(await res.json()).toEqual({
                     error: "A name is required to join the chat.",
+                });
+                expect(logs).toContainEqual({
+                    level: "error",
+                    message: "Login failed: a name is required",
                 });
             }
         );
@@ -164,7 +193,7 @@ describe("GET /api/names", () => {
                      VALUES (1, 1)`
                 ).run();
             },
-            async (baseUrl) => {
+            async (baseUrl, logs) => {
                 const res = await fetch(`${baseUrl}/api/names`);
 
                 expect(res.status).toBe(200);
@@ -186,6 +215,7 @@ describe("GET /api/names", () => {
                         tag_style: null,
                     },
                 ]);
+                expect(logs).toEqual([]);
             }
         );
     });

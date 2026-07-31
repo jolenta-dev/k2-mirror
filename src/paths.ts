@@ -10,7 +10,7 @@ export type KatharinePaths = {
 // set the K2 paths ---------------------------------------------------
 export function initPaths(): KatharinePaths {
     const rootDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-    const databasesDir = path.join(rootDir, "src", "server", "dbs");
-    const logsDir = path.join(rootDir, "logs");
+    const databasesDir = path.join(rootDir, "server", "dbs");
+    const logsDir = path.join(rootDir, "server", "logs");
     return { rootDir, databasesDir, logsDir };
 }
