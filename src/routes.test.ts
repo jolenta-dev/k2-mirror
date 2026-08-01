@@ -168,6 +168,129 @@ describe("POST /api/login", () => {
     });
 });
 
+describe("POST /api/adminLogin", () => {
+    it("logs in admin with the correct password", async () => {
+        await withTestServer(
+            () => {},
+            async (baseUrl, logs) => {
+                await fetch(`${baseUrl}/api/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "admin", password: "secret" }),
+                });
+
+                const res = await fetch(`${baseUrl}/api/adminLogin`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "admin", password: "secret" }),
+                });
+
+                expect(res.status).toBe(200);
+                expect(await res.json()).toEqual({ success: true });
+                expect(res.headers.getSetCookie().join(";")).toMatch(/chat_sid=/);
+                expect(logs).toContainEqual({
+                    level: "info",
+                    message: "Successful logon by admin on /adminLogin.",
+                });
+            }
+        );
+    });
+
+    it("rejects a missing name or password", async () => {
+        await withTestServer(
+            () => {},
+            async (baseUrl, logs) => {
+                const res = await fetch(`${baseUrl}/api/adminLogin`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "admin" }),
+                });
+
+                expect(res.status).toBe(400);
+                expect(await res.json()).toEqual({
+                    error: "Both a name and password are required.",
+                });
+                expect(logs).toContainEqual({
+                    level: "error",
+                    message: "Attempted null login on /adminLogin.",
+                });
+            }
+        );
+    });
+
+    it("rejects a name not in users", async () => {
+        await withTestServer(
+            () => {},
+            async (baseUrl, logs) => {
+                const res = await fetch(`${baseUrl}/api/adminLogin`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "admin", password: "secret" }),
+                });
+
+                expect(res.status).toBe(400);
+                expect(await res.json()).toEqual({ error: "name not found" });
+                expect(logs).toContainEqual({
+                    level: "error",
+                    message: "Login blocked for admin on /adminLogin: not found.",
+                });
+            }
+        );
+    });
+
+    it("rejects an incorrect password", async () => {
+        await withTestServer(
+            () => {},
+            async (baseUrl, logs) => {
+                await fetch(`${baseUrl}/api/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "admin", password: "secret" }),
+                });
+
+                const res = await fetch(`${baseUrl}/api/adminLogin`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "admin", password: "nope" }),
+                });
+
+                expect(res.status).toBe(401);
+                expect(await res.json()).toEqual({ error: "Incorrect password" });
+                expect(logs).toContainEqual({
+                    level: "error",
+                    message: "Login with incorrect password for admin attempted on /adminLogin.",
+                });
+            }
+        );
+    });
+
+    it("rejects a non-admin user", async () => {
+        await withTestServer(
+            () => {},
+            async (baseUrl, logs) => {
+                await fetch(`${baseUrl}/api/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "alice", password: "secret" }),
+                });
+
+                const res = await fetch(`${baseUrl}/api/adminLogin`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "alice", password: "secret" }),
+                });
+
+                expect(res.status).toBe(403);
+                expect(await res.json()).toEqual({ error: "Not Authorized" });
+                expect(logs).toContainEqual({
+                    level: "error",
+                    message: "Unauthorized login attempted by alice on /adminLogin.",
+                });
+            }
+        );
+    });
+});
+
 describe("GET /api/names", () => {
     it("returns registered users with decoration and chat tag info", async () => {
         await withTestServer(
