@@ -55,11 +55,15 @@ export class MemberList extends Component {
 
     private formatMember(entry: NameEntry): string {
         const color = entry.color ?? K2_TEXT;
-        const decoration = entry.decoration ? `${escapeHtml(entry.decoration)} ` : "";
+        const decoration = entry.decoration ? escapeHtml(entry.decoration) : "";
+        const before = decoration ? `<span>${decoration}</span>` : "";
+        const after = decoration
+            ? `<span style="display: inline-block; transform: scaleX(-1)">${decoration}</span>`
+            : "";
         const tag = entry.tag
             ? ` <span style="${escapeHtml(entry.tag_style ?? "")}">${escapeHtml(entry.tag)}</span>`
             : "";
-        return `${tag}${decoration}<span style="color: ${escapeHtml(color)}">${escapeHtml(entry.name)}</span>`;
+        return `${tag}${before}<span style="color: ${escapeHtml(color)}">${escapeHtml(entry.name)}</span>${after}`;
     }
 
     public addMember(innerHTML: string): void {
