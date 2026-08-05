@@ -8,8 +8,8 @@ export class PageTitle extends Component<HTMLDivElement> {
         titleWrapper.appendChild(title);
         title.innerHTML = "<h2><b>" + content + "</b></h2>";
         titleWrapper.style.display = "flex";
-        titleWrapper.style.justifyContent = "center";
         titleWrapper.style.fontFamily = K2_SERIF;
+        titleWrapper.style.justifyContent = "center";
 
         super(titleWrapper);
         this.mount();

@@ -12,15 +12,15 @@ export class Button extends Component<HTMLButtonElement> {
         }
 
         // styling
-        el.style.textAlign = "center";
+        el.style.backgroundColor = K2_HIGHLIGHT;
+        el.style.border = `1px solid ${K2_SECONDARY}`;
+        el.style.borderRadius = "5px";
+        el.style.boxSizing = "border-box";
+        el.style.color = K2_SECONDARY;
         el.style.cursor = "pointer";
         el.style.font = "inherit";
-        el.style.boxSizing = "border-box";
         el.style.padding = "6px 14px";
-        el.style.border = `1px solid ${K2_SECONDARY}`;
-        el.style.color = K2_SECONDARY;
-        el.style.borderRadius = "5px";
-        el.style.backgroundColor = K2_HIGHLIGHT;
+        el.style.textAlign = "center";
 
         super(el);
 
@@ -36,9 +36,15 @@ export class Button extends Component<HTMLButtonElement> {
         this.mount();
     }
 
+    /* TODO: add more button effects to chose from:
+     * -spins
+     *  -wiggles
+     *  -sticky
+     */
     makeWiggly(): void {
         new Wiggly(this.el);
     }
+    // TODO: add an option for button sound effects
 
     hover(el: HTMLButtonElement): void {
         if (el.style.backgroundColor === "rgb(112, 141, 133)") {

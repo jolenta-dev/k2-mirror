@@ -7,12 +7,13 @@ export class Table extends Component<HTMLTableElement> {
 
     constructor(rows: number, columns: number, headers: string[]) {
         const t: HTMLTableElement = document.createElement("table");
+        t.style.borderCollapse = "collapse";
+        t.style.margin = "10px auto";
         t.style.tableLayout = "fixed";
         t.style.width = "90%";
-        t.style.margin = "10px auto";
-        t.style.borderCollapse = "collapse";
 
         super(t);
+
         this.rows = 0;
         this.tbody = document.createElement("tbody");
         this.mount();
@@ -23,16 +24,16 @@ export class Table extends Component<HTMLTableElement> {
             if (headers.length != columns) return; // TODO: add some communication of the error here.
             for (let i: number = 0; i < headers.length; i++) {
                 let th: HTMLTableCellElement = document.createElement("th");
-                th.textContent = headers[i] as string;
-                th.style.padding = "0.6em";
-                th.style.verticalAlign = "top";
-                th.style.border = `1px solid ${K2_BORDER}`;
                 th.style.background = "rgba(255, 255, 255, 0.07)";
+                th.style.border = `1px solid ${K2_BORDER}`;
                 th.style.color = K2_TEXT;
                 th.style.fontWeight = "normal";
+                th.style.padding = "0.6em";
                 th.style.textAlign = "right";
-                th.style.width = "20%";
                 th.style.textDecoration = "underline";
+                th.style.verticalAlign = "top";
+                th.style.width = "20%";
+                th.textContent = headers[i] as string;
                 tr.appendChild(th);
             }
         }
@@ -54,13 +55,13 @@ export class Table extends Component<HTMLTableElement> {
         const tr: HTMLTableRowElement = document.createElement("tr");
         for (let i: number = 0; i < cols; i++) {
             let td: HTMLTableCellElement = document.createElement("td");
-            td.textContent = content[i] as string;
-            td.style.padding = "0.6em";
-            td.style.verticalAlign = "top";
             td.style.border = `1px solid ${K2_BORDER}`;
             td.style.color = K2_TEXT;
+            td.style.padding = "0.6em";
             td.style.textAlign = "right";
+            td.style.verticalAlign = "top";
             td.style.width = "20%";
+            td.textContent = content[i] as string;
             tr.appendChild(td);
         }
         tr.style.backgroundColor =
