@@ -222,7 +222,54 @@ export function addRoutes(app: Express, db: DatabaseSync, logger: Logger): void 
 
     // announcement API --------------
     // POST a new announcement (AUTH)
-    app.post("/api/announcements", (_req: Request, _res: Response): void => {});
+    app.post("/api/announcements", (_req: Request, _res: Response): void => {
+        try {
+            const name: string = (_req.signedCookies.chat_sid || "").toLowerCase().trim();
+            if (name !== "admin") {
+                logger.error(`Attempted unauthorized announcement POST by ${name}`);
+                _res.status(403).json({ error: "403 forbidden." });
+                return;
+            }
+
+            const { message, scope }: { message?: string; scope?: string } = _req.body || {};
+            if (!message || !String(message).trim()) {
+                logger.error(`Failed to send announcement from ${name} due to empty message`);
+                _res.status(400).json({ error: "a message is required" });
+                return;
+            }
+
+            const adminUser: { user_id: number } | undefined = db
+                .prepare(`SELECT user_id FROM users WHERE LOWER(name) = LOWER(?)`)
+                .get(name) as { user_id: number } | undefined;
+            if (!adminUser) {
+                logger.error(`Attempted unauthorized announcement POST by ${name}`);
+                _res.status(403).json({ error: "403 forbidden." });
+                return;
+            }
+
+            const normalizedScope: string =
+                scope === "public" || scope === "here" ? scope : "global";
+            const row: { maxId: number | null } | undefined = db
+                .prepare("SELECT MAX(announcement_id) AS maxId FROM announcements")
+                .get() as { maxId: number | null } | undefined;
+            const nextId: number = (row?.maxId ?? 0) + 1;
+
+            db.prepare(
+                `
+                   INSERT INTO announcements (announcement_id, message, timestamp, sender, scope)
+                   VALUES (?, ?, datetime('now'), ?, ?)
+                   `
+            ).run(nextId, message.trim(), adminUser.user_id, normalizedScope);
+
+            _res.json({ success: true });
+            return;
+        } catch (err: unknown) {
+            const message: string = err instanceof Error ? err.message : String(err);
+            logger.error(`/api/announcements failed: ${message}`);
+            _res.status(500).json({ error: "Failed to create announcement." });
+            return;
+        }
+    });
 
     // POST a special "system" announcement (for automated announcements) (AUTH)
     app.post("/api/announcements/system", (_req: Request, _res: Response): void => {});

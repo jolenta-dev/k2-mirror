@@ -291,6 +291,103 @@ describe("POST /api/adminLogin", () => {
     });
 });
 
+describe("POST /api/announcements", () => {
+    it("adds a new announcement to the announcements SQLite table", async () => {
+        let dbRef: ReturnType<typeof initTables> | undefined;
+        await withTestServer(
+            (db) => {
+                dbRef = db;
+            },
+            async (baseUrl, logs) => {
+                await fetch(`${baseUrl}/api/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "admin", password: "secret" }),
+                });
+
+                const loginRes = await fetch(`${baseUrl}/api/adminLogin`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "admin", password: "secret" }),
+                });
+                const cookie = loginRes.headers.getSetCookie().join("; ");
+
+                const res = await fetch(`${baseUrl}/api/announcements`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Cookie: cookie,
+                    },
+                    body: JSON.stringify({ message: "hello chat", scope: "global" }),
+                });
+
+                expect(res.status).toBe(200);
+                expect(await res.json()).toEqual({ success: true });
+
+                const rows = dbRef!
+                    .prepare(`SELECT announcement_id, message, sender, scope FROM announcements`)
+                    .all() as Array<{
+                    announcement_id: number;
+                    message: string;
+                    sender: number;
+                    scope: string;
+                }>;
+                expect(rows).toEqual([
+                    {
+                        announcement_id: 1,
+                        message: "hello chat",
+                        sender: 1,
+                        scope: "global",
+                    },
+                ]);
+                expect(logs).not.toContainEqual(expect.objectContaining({ level: "error" }));
+            }
+        );
+    });
+
+    it("rejects a non-admin user attempting to POST", async () => {
+        let dbRef: ReturnType<typeof initTables> | undefined;
+        await withTestServer(
+            (db) => {
+                dbRef = db;
+            },
+            async (baseUrl, logs) => {
+                await fetch(`${baseUrl}/api/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "alice", password: "secret" }),
+                });
+
+                const loginRes = await fetch(`${baseUrl}/api/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "alice", password: "secret" }),
+                });
+                const cookie = loginRes.headers.getSetCookie().join("; ");
+
+                const res = await fetch(`${baseUrl}/api/announcements`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Cookie: cookie,
+                    },
+                    body: JSON.stringify({ message: "hello chat", scope: "global" }),
+                });
+
+                expect(res.status).toBe(403);
+                expect(await res.json()).toEqual({ error: "403 forbidden." });
+                expect(dbRef!.prepare(`SELECT COUNT(*) AS count FROM announcements`).get()).toEqual(
+                    { count: 0 }
+                );
+                expect(logs).toContainEqual({
+                    level: "error",
+                    message: "Attempted unauthorized announcement POST by alice",
+                });
+            }
+        );
+    });
+});
+
 describe("GET /api/names", () => {
     it("returns registered users with decoration and chat tag info", async () => {
         await withTestServer(
